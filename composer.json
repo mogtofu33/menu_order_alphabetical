@@ -1,0 +1,14 @@
+{
+  "name": "drupal/menu_order_alphabetical",
+  "type": "drupal-module",
+  "description": "Add alphabetical order option to the menu ui and menu creation.",
+  "keywords": ["Drupal"],
+  "license": "GPL-3.0+",
+  "homepage": "https://github.com/Mogtofu33/menu_order_alphabetical",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://github.com/Mogtofu33/menu_order_alphabetical/issues",
+    "source": "https://github.com/Mogtofu33/menu_order_alphabetical"
+  },
+  "require": { }
+}

@@ -1,0 +1,199 @@
+<?php
+
+/**
+ * @file
+ * Contains menu_order_alphabetical.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\Component\Utility\SortArray;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_help().
+ */
+function menu_order_alphabetical_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the menu_order_alphabetical module.
+    case 'help.page.menu_order_alphabetical':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Add alphabetical order option to the menu ui and menu creation.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_entity_type_build().
+ */
+function menu_order_alphabetical_entity_type_build(array &$entity_types) {
+  /* @var $entity_types \Drupal\Core\Entity\EntityTypeInterface[] */
+  $entity_types['menu']
+    ->setFormClass('reset', 'Drupal\menu_order_alphabetical\Form\MenuLinkTreeResetForm')
+    ->setLinkTemplate('reset-form', '/admin/structure/menu/manage/{menu}/reset');
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ *
+ * For new menu before saving adapt weight for alphabetical prosition.
+ */
+function menu_order_alphabetical_menu_link_content_presave(MenuLinkContent $entity) {
+  // We only process new menu entries.
+  if (!$entity->isNew()) {
+    return;
+  }
+  $id = $entity->getPluginId();
+  $menu_name = $entity->getMenuName();
+  $root = $entity->getParentId();
+
+  $new_tree = [];
+  if ($tree = _menu_order_alphabetical_get_tree($menu_name, $root)) {
+    // We have a root so start from this root.
+    $tree = reset($tree);
+    if (isset($tree->subtree)) {
+      foreach ($tree->subtree as $menuLinkTree) {
+        $menuLink = $menuLinkTree->link;
+        $new_tree[$menuLink->getPluginId()] = [
+          'id' => $menuLink->getPluginId(),
+          'title' => $menuLink->getTitle(),
+          'weight' => $menuLink->getWeight(),
+        ];
+      }
+    }
+  }
+
+  if (count($new_tree)) {
+    // Sort by title.
+    uasort($new_tree, [SortArray::class, 'sortByTitleElement']);
+    if (!isset($new_tree[$id])) {
+      // Add our new entry to get the position if not here.
+      $new_tree[$id] = [
+        'id' => $id,
+        'title' => $entity->getTitle(),
+        'weight' => 0,
+      ];
+    }
+    while (current($new_tree) !== $new_tree[$id]) {
+      next($new_tree);
+    }
+    // Start from our link position.
+    current($new_tree);
+    prev($new_tree);
+    $current = current($new_tree);
+    $weight = $current['weight'];
+    // Set the same weight as previous menu, Drupal will order
+    // alphabetically when same weight.
+    $entity->set('weight', $weight);
+  }
+}
+
+/**
+ * Gets the menu tree.
+ *
+ * @param string $menu_name
+ *   Name of the menu.
+ * @param string $root
+ *   Parent menu.
+ * @param int $depth
+ *   Depth max of the menu.
+ *
+ * @return \Drupal\Core\Menu\MenuLinkTreeElement[]
+ *   The Drupal menu tree.
+ */
+function _menu_order_alphabetical_get_tree($menu_name, $root = NULL, $depth = 1) {
+  $menu_tree = \Drupal::menuTree();
+
+  // Build the typical default set of menu tree parameters.
+  $parameters = $menu_tree->getCurrentRouteMenuTreeParameters($menu_name);
+  $parameters->setMaxDepth($depth);
+  // Set our parent.
+  if ($root) {
+    $parameters->setRoot($root);
+  }
+
+  // Force the entire tree to be build be setting expandParents to an
+  // empty array.
+  $parameters->expandedParents = [];
+  $parameters->activeTrail = [];
+
+  // Load the tree based on this set of parameters.
+  $tree = $menu_tree->load($menu_name, $parameters);
+
+  // Transform the tree using the manipulators you want.
+  $manipulators = [
+    // Use the default sorting of menu links.
+    ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+  ];
+  $tree = $menu_tree->transform($tree, $manipulators);
+
+  return $tree;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function menu_order_alphabetical_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $form_ids = [
+    'menu_edit_form',
+    'menu_edit_bigmenu_form',
+    'menu_edit_bigmenu_slice_form',
+  ];
+  if (in_array($form_id, $form_ids)) {
+    $form['actions']['reset_alphabetical'] = [
+      '#type' => 'submit',
+      '#submit' => ['menu_order_alphabetical_submit_reset'],
+      '#value' => t('Reset to alphabetical'),
+      '#weight' => (int) $form['actions']['submit']['#weight'] + 1,
+    ];
+
+    // Add the parent menu name if any.
+    if ($menu_link_parent = \Drupal::routeMatch()->getParameter('menu_link')) {
+      $form['parent_reset'] = [
+        '#type' => 'hidden',
+        '#value' => $menu_link_parent,
+      ];
+    }
+  }
+}
+
+/**
+ * Redirects to confirmation form for the reset action.
+ */
+function menu_order_alphabetical_submit_reset(array &$form, FormStateInterface $form_state) {
+  $menu = $form_state->getValue('id');
+  $menu_parent = $form_state->getValue('parent_reset');
+  $form_state->setRedirectUrl(Url::fromRoute('entity.menu_ui.reset_form', ['menu' => $menu, 'menu_link' => $menu_parent]));
+}
+
+/**
+ * Simple reset function for menu weight.
+ *
+ * We set all weight to 0, Drupal menu will order by natural title.
+ */
+function menu_order_alphabetical_reset($menu_name, $parent = NULL) {
+  $query = \Drupal::database()->update('menu_tree')
+    ->fields([
+      'weight' => 0,
+    ])
+    ->condition('menu_name', $menu_name);
+  if ($parent) {
+    $query->condition('parent', $parent);
+  }
+  $query->execute();
+  $query = \Drupal::database()->update('menu_link_content_data')
+    ->fields([
+      'weight' => 0,
+    ])
+    ->condition('menu_name', $menu_name);
+  if ($parent) {
+    $query->condition('parent', $parent);
+  }
+  $query->execute();
+  // We need to flush menu cache so the menu_ui match the new weights.
+  menu_cache_clear_all();
+}

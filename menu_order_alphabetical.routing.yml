@@ -1,0 +1,8 @@
+entity.menu_ui.reset_form:
+  path: '/admin/structure/menu/manage/{menu}/reset/{menu_link}'
+  defaults:
+    _form: 'Drupal\menu_order_alphabetical\Form\MenuLinkTreeResetForm'
+    _title: 'Reset'
+    menu_link: ''
+  requirements:
+    _permission: 'administer menu'

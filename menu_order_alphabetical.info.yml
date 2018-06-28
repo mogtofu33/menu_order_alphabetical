@@ -1,0 +1,7 @@
+name: 'Menu order alphabetically'
+type: module
+description: 'Add alphabetical order options to menu management.'
+core: 8.x
+package: 'Other'
+dependencies:
+  - drupal:menu_ui
