@@ -6,4 +6,4 @@ On menu creation from any content type or from the menu ui, the newly created en
 
 On menu ui, a _Reset to alphabetical_ option is available like for Taxonomy.
 
-This module is compatidle with Big menu.
+This module is compatible with [Big menu](https://www.drupal.org/project/bigmenu)
