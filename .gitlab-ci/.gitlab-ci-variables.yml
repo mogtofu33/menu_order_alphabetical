@@ -84,7 +84,7 @@ variables:
   # Phpunit functional tests (browser tests)
   SKIP_TEST_FUNCTIONAL: 0
   # Phpunit functional javascript tests (browser with javascript tests)
-  SKIP_TEST_FUNCTIONALJS: 0
+  SKIP_TEST_FUNCTIONALJS: 1
   # Nightwatch tests (browser with javascript tests), since Drupal 8.6
   # Currently not fully ready for Drupal.
   SKIP_TEST_NIGHTWATCH: 1
