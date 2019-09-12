@@ -82,7 +82,7 @@ variables:
   # Phpunit codecoverage with optional Codecove.io support
   SKIP_TEST_CODECOVERAGE: 1
   # Phpunit functional tests (browser tests)
-  SKIP_TEST_FUNCTIONAL: 1
+  SKIP_TEST_FUNCTIONAL: 0
   # Phpunit functional javascript tests (browser with javascript tests)
   SKIP_TEST_FUNCTIONALJS: 1
   # Nightwatch tests (browser with javascript tests), since Drupal 8.6
@@ -95,9 +95,9 @@ variables:
   # Accessibility test
   SKIP_TEST_PA11Y: 1
   # Skip all QA jobs (Code sniffer with Drupal standards)
-  SKIP_QA: 1
+  SKIP_QA: 0
   # Skip QA Best practices (Code sniffer with Drupal Practices standard)
-  SKIP_QA_BESTPRACTICES: 1
+  SKIP_QA_BESTPRACTICES: 0
   # Skip all lint jobs (Javascript with eslint, Css with stylelint, Sass with sass-lint)
   SKIP_LINT: 1
   # Skip CSS lint job with stylelint
