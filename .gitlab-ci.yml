@@ -383,7 +383,7 @@ Code quality:
     - cp ${CI_PROJECT_DIR}/.gitlab-ci/.phpmd.xml ${CI_PROJECT_DIR}/.phpmd.xml || true
     - cp ${CI_PROJECT_DIR}/.gitlab-ci/.phpqa.yml ${CI_PROJECT_DIR}/.phpqa.yml || true
     - cp ${CI_PROJECT_DIR}/.gitlab-ci/RoboFile.php ${CI_PROJECT_DIR} || true
-    - robo prepare:folders 1
+    - robo prepare:folders
   script:
     - phpqa --tools ${TOOLS}
         --buildDir ${REPORT_DIR}
@@ -404,7 +404,7 @@ Best practices:
     # Move from Drupal to DrupalPractice standard.
     - sed -i 's/Drupal/DrupalPractice/g' ${CI_PROJECT_DIR}/.phpqa.yml
     - cp ${CI_PROJECT_DIR}/.gitlab-ci/RoboFile.php ${CI_PROJECT_DIR} || true
-    - robo prepare:folders 1
+    - robo prepare:folders
   script:
     - phpqa --tools ${BEST_PRACTICES}
         --buildDir ${REPORT_DIR}
@@ -527,7 +527,7 @@ Sass lint:
   before_script:
     - cp ${CI_PROJECT_DIR}/.gitlab-ci/.phpqa.yml ${CI_PROJECT_DIR}/.phpqa.yml || true
     - cp ${CI_PROJECT_DIR}/.gitlab-ci/RoboFile.php ${CI_PROJECT_DIR} || true
-    - robo prepare:folders 1
+    - robo prepare:folders
 
 # Phpmetrics report, no pass or failure as it's just informative.
 Php metrics:
