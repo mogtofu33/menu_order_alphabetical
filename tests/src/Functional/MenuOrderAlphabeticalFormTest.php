@@ -16,6 +16,13 @@ class MenuOrderAlphabeticalFormTest extends BrowserTestBase {
   use StringTranslationTrait;
 
   /**
+   * Default Drupal theme to use.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * {@inheritdoc}
    */
   public static $modules = [
